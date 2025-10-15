@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import knex from "knex";
 import sql from "mssql";
 import { Sequelize } from "sequelize";
 
