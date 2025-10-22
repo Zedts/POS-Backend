@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { checkDatabaseConnection } from "./src/config/dbConnection.js";
 import loginRoutes from "./src/routes/login.js";
+import dashboardRoutes from "./src/routes/dashboard.js";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/auth", loginRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
