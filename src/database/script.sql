@@ -37,7 +37,7 @@ CREATE TABLE products (
     category_id INT NOT NULL,
     qty INT DEFAULT 0,
     supplier VARCHAR(100),
-    price DECIMAL(10,2) NOT NULL,
+    price DECIMAL(18,0) NOT NULL,
     picture_url VARCHAR(500),
     created_by INT NOT NULL, -- admin yang buat produk
     updated_by INT NULL,
@@ -54,8 +54,8 @@ CREATE TABLE products (
 CREATE TABLE product_price_history (
     id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
-    old_price DECIMAL(10,2),
-    new_price DECIMAL(10,2),
+    old_price DECIMAL(18,0),
+    new_price DECIMAL(18,0),
     changed_at DATETIME DEFAULT GETDATE(),
     changed_by INT NOT NULL, -- admin yang ubah harga
     FOREIGN KEY (product_id) REFERENCES products(id),
@@ -68,8 +68,8 @@ CREATE TABLE discount (
     discount_code VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
     discount_percent DECIMAL(5,2) NOT NULL,
-    min_purchase DECIMAL(10,2) DEFAULT 0,
-    max_discount DECIMAL(10,2) NULL,
+    min_purchase DECIMAL(18,0) DEFAULT 0,
+    max_discount DECIMAL(18,0) NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     usage_limit INT NULL,
@@ -88,8 +88,8 @@ CREATE TABLE orders (
     order_number VARCHAR(50) PRIMARY KEY,
     order_date DATETIME DEFAULT GETDATE(),
     employee_id INT NOT NULL, -- FK ke siswa yang input order
-    order_total DECIMAL(10,2),
-    balance DECIMAL(10,2),
+    order_total DECIMAL(18,0),
+    balance DECIMAL(18,0),
     discount_code VARCHAR(50) NULL,
     FOREIGN KEY (employee_id) REFERENCES student(id),
     FOREIGN KEY (discount_code) REFERENCES discount(discount_code)
@@ -103,11 +103,11 @@ CREATE TABLE order_details (
     product_name VARCHAR(200),
     product_picture VARCHAR(500),
     qty_product INT,
-    price_product DECIMAL(10,2),
+    price_product DECIMAL(18,0),
     status VARCHAR(10) CHECK (status IN ('complete', 'pending')) DEFAULT 'pending',
     verified_by INT NULL, -- siswa yang verifikasi
     verified_date DATETIME NULL,
-    balance DECIMAL(10,2),
+    balance DECIMAL(18,0),
     FOREIGN KEY (order_number) REFERENCES orders(order_number),
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (verified_by) REFERENCES student(id)
@@ -120,10 +120,10 @@ CREATE TABLE invoices (
     invoice_status VARCHAR(10) NOT NULL CHECK (invoice_status IN ('diproses', 'gagal', 'berhasil')),
     invoice_date DATETIME DEFAULT GETDATE(),
     order_number VARCHAR(50) NOT NULL,
-    order_total DECIMAL(10,2),
+    order_total DECIMAL(18,0),
     discount_code VARCHAR(50),
     discount_percent DECIMAL(5,2),
-    balance DECIMAL(10,2),
+    balance DECIMAL(18,0),
     paid_by VARCHAR(10) NOT NULL CHECK (paid_by IN ('cash', 'qr')),
     verified_by INT NOT NULL, -- siswa yang verifikasi pembayaran
     mobile_employee VARCHAR(20) NULL,

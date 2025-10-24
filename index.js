@@ -7,6 +7,7 @@ import { checkDatabaseConnection } from "./src/config/dbConnection.js";
 import loginRoutes from "./src/routes/login.js";
 import dashboardRoutes from "./src/routes/dashboard.js";
 import productsRoutes from "./src/routes/products.js";
+import categoryRoutes from "./src/routes/category.js";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/auth", loginRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/products", productsRoutes);
+app.use("/api/categories", categoryRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
