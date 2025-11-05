@@ -1,4 +1,5 @@
 import * as productsModel from '../models/products.js';
+import { createAuditLog } from '../utils/auditLogger.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -63,6 +64,23 @@ export const createProduct = async (req, res) => {
 
     const newProduct = await productsModel.createProduct(productData);
     
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: req.user.userType,
+      userName: req.user.fullName,
+      entityType: 'product',
+      entityId: newProduct.id,
+      action: 'CREATE',
+      description: `Menambahkan produk "${productData.product_name}"`,
+      newValue: {
+        product_name: productData.product_name,
+        price: productData.price,
+        qty: productData.qty,
+        category_id: productData.category_id
+      }
+    });
+    
     res.status(201).json({
       success: true,
       message: 'Produk berhasil ditambahkan',
@@ -82,6 +100,17 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Get old data first for audit log
+    const oldProduct = await productsModel.getProductById(id);
+    
+    if (!oldProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Produk tidak ditemukan'
+      });
+    }
+    
     const productData = {
       ...req.body,
       updated_by: req.user.id // from JWT token
@@ -89,12 +118,29 @@ export const updateProduct = async (req, res) => {
 
     const updatedProduct = await productsModel.updateProduct(id, productData);
     
-    if (!updatedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: 'Produk tidak ditemukan'
-      });
-    }
+    // Create audit log
+    const changes = {};
+    if (oldProduct.product_name !== productData.product_name) changes.product_name = productData.product_name;
+    if (oldProduct.price !== productData.price) changes.price = productData.price;
+    if (oldProduct.qty !== productData.qty) changes.qty = productData.qty;
+    if (oldProduct.category_id !== productData.category_id) changes.category_id = productData.category_id;
+    
+    await createAuditLog({
+      userId: req.user.id,
+      userType: req.user.userType,
+      userName: req.user.fullName,
+      entityType: 'product',
+      entityId: id,
+      action: 'UPDATE',
+      description: `Mengupdate produk "${oldProduct.product_name}"`,
+      oldValue: {
+        product_name: oldProduct.product_name,
+        price: oldProduct.price,
+        qty: oldProduct.qty,
+        category_id: oldProduct.category_id
+      },
+      newValue: changes
+    });
 
     res.json({
       success: true,
@@ -116,10 +162,20 @@ export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const product = await productsModel.deleteProduct(id);
+    // Get product data first for audit log
+    const product = await productsModel.getProductById(id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Produk tidak ditemukan'
+      });
+    }
+    
+    await productsModel.deleteProduct(id);
     
     // Delete image file if exists and is local file
-    if (product && product.picture_url && !product.picture_url.startsWith('http')) {
+    if (product.picture_url && !product.picture_url.startsWith('http')) {
       const uploadsDir = path.join(__dirname, '../../../uploads');
       const filePath = path.join(uploadsDir, product.picture_url);
       
@@ -127,6 +183,22 @@ export const deleteProduct = async (req, res) => {
         fs.unlinkSync(filePath);
       }
     }
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: req.user.userType,
+      userName: req.user.fullName,
+      entityType: 'product',
+      entityId: id,
+      action: 'DELETE',
+      description: `Menghapus produk "${product.product_name}"`,
+      oldValue: {
+        product_name: product.product_name,
+        price: product.price,
+        qty: product.qty
+      }
+    });
 
     res.json({
       success: true,

@@ -1,4 +1,5 @@
 import * as categoryModel from "../models/category.js";
+import { createAuditLog } from "../utils/auditLogger.js";
 
 // Get all categories
 export const getAllCategories = async (req, res) => {
@@ -57,6 +58,20 @@ export const createCategory = async (req, res) => {
     }
 
     const category = await categoryModel.createCategory({ category_name });
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: req.user.userType,
+      userName: req.user.fullName,
+      entityType: 'category',
+      entityId: category.id,
+      action: 'CREATE',
+      description: `Menambahkan kategori "${category_name}"`,
+      newValue: {
+        category_name
+      }
+    });
 
     res.status(201).json({
       success: true,
@@ -84,15 +99,35 @@ export const updateCategory = async (req, res) => {
         message: "Nama kategori harus diisi",
       });
     }
-
-    const category = await categoryModel.updateCategory(id, { category_name });
-
-    if (!category) {
+    
+    // Get old data first for audit log
+    const oldCategory = await categoryModel.getCategoryById(id);
+    
+    if (!oldCategory) {
       return res.status(404).json({
         success: false,
         message: "Kategori tidak ditemukan",
       });
     }
+
+    const category = await categoryModel.updateCategory(id, { category_name });
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: req.user.userType,
+      userName: req.user.fullName,
+      entityType: 'category',
+      entityId: id,
+      action: 'UPDATE',
+      description: `Mengupdate kategori "${oldCategory.category_name}" menjadi "${category_name}"`,
+      oldValue: {
+        category_name: oldCategory.category_name
+      },
+      newValue: {
+        category_name
+      }
+    });
 
     res.status(200).json({
       success: true,
@@ -122,8 +157,9 @@ export const deleteCategory = async (req, res) => {
         message: `Tidak dapat menghapus kategori yang memiliki ${productCount} produk. Hapus atau pindahkan produk terlebih dahulu.`,
       });
     }
-
-    const category = await categoryModel.deleteCategory(id);
+    
+    // Get old data first for audit log
+    const category = await categoryModel.getCategoryById(id);
 
     if (!category) {
       return res.status(404).json({
@@ -131,6 +167,22 @@ export const deleteCategory = async (req, res) => {
         message: "Kategori tidak ditemukan",
       });
     }
+
+    await categoryModel.deleteCategory(id);
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: req.user.userType,
+      userName: req.user.fullName,
+      entityType: 'category',
+      entityId: id,
+      action: 'DELETE',
+      description: `Menghapus kategori "${category.category_name}"`,
+      oldValue: {
+        category_name: category.category_name
+      }
+    });
 
     res.status(200).json({
       success: true,

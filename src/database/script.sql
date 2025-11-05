@@ -134,6 +134,28 @@ CREATE TABLE invoices (
     FOREIGN KEY (verified_by) REFERENCES student(id)
 );
 
+-- Tabel audit_logs: pencatatan aktivitas CRUD sistem
+CREATE TABLE audit_logs (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL, -- ID user yang melakukan aksi
+    user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('admin', 'student')), -- Tipe user
+    user_name VARCHAR(100) NOT NULL, -- Nama user untuk display
+    entity_type VARCHAR(50) NOT NULL, -- Tipe entitas: product, category, discount, student, order, invoice
+    entity_id VARCHAR(100), -- ID entitas yang diubah
+    action VARCHAR(50) NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE')), -- Aksi yang dilakukan
+    description TEXT NOT NULL, -- Deskripsi aksi
+    old_value TEXT NULL, -- Nilai lama (untuk UPDATE, format JSON)
+    new_value TEXT NULL, -- Nilai baru (untuk CREATE/UPDATE, format JSON)
+    ip_address VARCHAR(50) NULL, -- IP address user (opsional)
+    created_at DATETIME DEFAULT GETDATE(),
+    -- Indexes untuk performa query
+    INDEX idx_audit_user_type (user_type),
+    INDEX idx_audit_entity_type (entity_type),
+    INDEX idx_audit_action (action),
+    INDEX idx_audit_created_at (created_at),
+    INDEX idx_audit_user_id (user_id)
+);
+
 -- Menambahkan admin baru dengan password "123456" yang di-hash MD5
 INSERT INTO admin (username, password_hash, full_name, created_date, updated_date)
 VALUES (
