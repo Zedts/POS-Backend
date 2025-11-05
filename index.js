@@ -8,6 +8,7 @@ import loginRoutes from "./src/routes/login.js";
 import dashboardRoutes from "./src/routes/dashboard.js";
 import productsRoutes from "./src/routes/products.js";
 import categoryRoutes from "./src/routes/category.js";
+import discountRoutes from "./src/routes/discount.js";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use("/api/auth", loginRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/discounts", discountRoutes);
 
 // Health check route
 app.get("/", (req, res) => {

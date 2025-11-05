@@ -67,7 +67,7 @@ CREATE TABLE discount (
     discount_id INT IDENTITY(1,1) PRIMARY KEY,
     discount_code VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
-    discount_percent DECIMAL(5,2) NOT NULL,
+    discount_percent DECIMAL(18,2) NOT NULL,
     min_purchase DECIMAL(18,0) DEFAULT 0,
     max_discount DECIMAL(18,0) NULL,
     start_date DATE NOT NULL,
@@ -130,4 +130,14 @@ CREATE TABLE invoices (
     FOREIGN KEY (order_number) REFERENCES orders(order_number),
     FOREIGN KEY (discount_code) REFERENCES discount(discount_code),
     FOREIGN KEY (verified_by) REFERENCES student(id)
+);
+
+-- Menambahkan admin baru dengan password "123456" yang di-hash MD5
+INSERT INTO admin (username, password_hash, full_name, created_date, updated_date)
+VALUES (
+    'admin1', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Administrator Utama', 
+    GETDATE(), 
+    GETDATE()
 );

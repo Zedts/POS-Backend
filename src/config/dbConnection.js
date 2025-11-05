@@ -87,3 +87,16 @@ export const checkDatabaseConnection = async () => {
 export const getPOSPool = () => {
   return new sql.ConnectionPool(sqlConfigPOS);
 };
+
+// Export connection pool promise for async/await usage
+export const poolPromise = (async () => {
+  try {
+    const pool = new sql.ConnectionPool(sqlConfigPOS);
+    await pool.connect();
+    console.log("✅ SQL Server pool connected");
+    return pool;
+  } catch (err) {
+    console.error("❌ SQL Server pool connection failed:", err);
+    throw err;
+  }
+})();
