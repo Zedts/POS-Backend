@@ -13,6 +13,7 @@ import ordersRoutes from "./src/routes/orders.js";
 import invoicesRoutes from "./src/routes/invoices.js";
 import studentsRoutes from "./src/routes/students.js";
 import reportsRoutes from "./src/routes/reports.js";
+import priceHistoryRoutes from "./src/routes/priceHistory.js";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/invoices", invoicesRoutes);
 app.use("/api/students", studentsRoutes);
 app.use("/api/reports", reportsRoutes);
+app.use("/api/price-history", priceHistoryRoutes);
 
 // Health check route
 app.get("/", (req, res) => {

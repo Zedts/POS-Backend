@@ -56,6 +56,7 @@ CREATE TABLE product_price_history (
     product_id INT NOT NULL,
     old_price DECIMAL(18,0),
     new_price DECIMAL(18,0),
+    change_reason TEXT NULL, -- Alasan perubahan harga
     changed_at DATETIME DEFAULT GETDATE(),
     changed_by INT NOT NULL, -- admin yang ubah harga
     FOREIGN KEY (product_id) REFERENCES products(id),
