@@ -15,6 +15,7 @@ import studentsRoutes from "./src/routes/students.js";
 import reportsRoutes from "./src/routes/reports.js";
 import priceHistoryRoutes from "./src/routes/priceHistory.js";
 import auditLogsRoutes from "./src/routes/auditLogs.js";
+import settingsRoutes from "./src/routes/settings.js";
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use("/api/students", studentsRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/price-history", priceHistoryRoutes);
 app.use("/api/audit-logs", auditLogsRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
