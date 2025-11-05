@@ -91,6 +91,7 @@ CREATE TABLE orders (
     order_total DECIMAL(18,0),
     balance DECIMAL(18,0),
     discount_code VARCHAR(50) NULL,
+    status VARCHAR(10) CHECK (status IN ('pending', 'complete', 'refunded')) DEFAULT 'pending',
     FOREIGN KEY (employee_id) REFERENCES student(id),
     FOREIGN KEY (discount_code) REFERENCES discount(discount_code)
 );
