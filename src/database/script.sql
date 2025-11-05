@@ -142,3 +142,52 @@ VALUES (
     GETDATE(), 
     GETDATE()
 );
+
+-- Data Dummy Students/Employees --
+-- Menambahkan student/employee untuk testing dengan password "123456" yang di-hash MD5
+INSERT INTO student (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
+VALUES (
+    '0012345678', 
+    'student1', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Budi Santoso', 
+    '081234567890',
+    'Jl. Merdeka No. 123, Jakarta Pusat',
+    'XII',
+    'RPL',
+    1,
+    GETDATE(), 
+    GETDATE()
+);
+
+-- Menambahkan student/employee kedua untuk testing
+INSERT INTO student (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
+VALUES (
+    '0012345679', 
+    'student2', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Siti Nurhaliza', 
+    '081234567891',
+    'Jl. Sudirman No. 456, Jakarta Selatan',
+    'XI',
+    'DKV1',
+    1,
+    GETDATE(), 
+    GETDATE()
+);
+
+-- Menambahkan student/employee ketiga (tidak aktif) untuk testing
+INSERT INTO student (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
+VALUES (
+    '0012345680', 
+    'student3', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Ahmad Rizki', 
+    '081234567892',
+    'Jl. Gatot Subroto No. 789, Jakarta Barat',
+    'X',
+    'BR',
+    0,
+    GETDATE(), 
+    GETDATE()
+);
