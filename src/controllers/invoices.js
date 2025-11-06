@@ -52,3 +52,34 @@ export const getInvoiceStats = async (req, res) => {
     res.status(500).json({ message: 'Error fetching invoice statistics', error: error.message });
   }
 };
+
+// Create new invoice
+export const createInvoice = async (req, res) => {
+  try {
+    const invoiceData = req.body;
+
+    // Validation
+    if (!invoiceData.orderNumber || !invoiceData.orderTotal || !invoiceData.balance || !invoiceData.paidBy || !invoiceData.verifiedBy) {
+      return res.status(400).json({
+        success: false,
+        message: 'Data invoice tidak lengkap'
+      });
+    }
+
+    // Create invoice
+    const invoiceNumber = await invoiceModel.createInvoice(invoiceData);
+    
+    res.json({
+      success: true,
+      message: 'Invoice berhasil dibuat',
+      data: { invoiceNumber }
+    });
+  } catch (error) {
+    console.error('Error in createInvoice:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal membuat invoice',
+      error: error.message
+    });
+  }
+};

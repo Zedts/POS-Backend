@@ -168,3 +168,38 @@ export const getInvoiceStats = async () => {
     throw error;
   }
 };
+
+// Create new invoice
+export const createInvoice = async (invoiceData) => {
+  try {
+    const pool = await poolPromise;
+    
+    // Generate invoice number (format: INV-YYYYMMDD-XXXXX)
+    const date = new Date();
+    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+    const randomStr = Math.floor(10000 + Math.random() * 90000);
+    const invoiceNumber = `INV-${dateStr}-${randomStr}`;
+    
+    await pool.request()
+      .input('invoiceNumber', sql.VarChar(50), invoiceNumber)
+      .input('invoiceStatus', sql.VarChar(50), 'berhasil')
+      .input('invoiceDate', sql.DateTime, new Date())
+      .input('orderNumber', sql.VarChar(50), invoiceData.orderNumber)
+      .input('orderTotal', sql.Decimal(18, 2), invoiceData.orderTotal)
+      .input('discountCode', sql.VarChar(50), invoiceData.discountCode || null)
+      .input('discountPercent', sql.Decimal(5, 2), invoiceData.discountPercent || 0)
+      .input('balance', sql.Decimal(18, 2), invoiceData.balance)
+      .input('paidBy', sql.VarChar(50), invoiceData.paidBy)
+      .input('verifiedBy', sql.Int, invoiceData.verifiedBy)
+      .input('mobileEmployee', sql.VarChar(20), invoiceData.mobileEmployee || null)
+      .query(`
+        INSERT INTO invoices (invoice_number, invoice_status, invoice_date, order_number, order_total, discount_code, discount_percent, balance, paid_by, verified_by, mobile_employee)
+        VALUES (@invoiceNumber, @invoiceStatus, @invoiceDate, @orderNumber, @orderTotal, @discountCode, @discountPercent, @balance, @paidBy, @verifiedBy, @mobileEmployee)
+      `);
+    
+    return invoiceNumber;
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    throw error;
+  }
+};

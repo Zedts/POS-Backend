@@ -4,7 +4,8 @@ import {
   getOrders,
   getOrderByNumber,
   getOrderStats,
-  updateOrderStatus
+  updateOrderStatus,
+  createOrder
 } from '../controllers/orders.js';
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.use(verifyToken);
 // Order routes
 router.get('/', getOrders);
 router.get('/stats', getOrderStats);
+router.post('/', createOrder);
 router.get('/:orderNumber', getOrderByNumber);
 router.put('/:orderNumber/status', updateOrderStatus);
 

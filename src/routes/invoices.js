@@ -10,6 +10,7 @@ router.use(verifyToken);
 // Invoice routes
 router.get('/', invoiceController.getInvoices);
 router.get('/stats', invoiceController.getInvoiceStats);
+router.post('/', invoiceController.createInvoice);
 router.get('/:invoiceNumber', invoiceController.getInvoiceByNumber);
 
 export default router;

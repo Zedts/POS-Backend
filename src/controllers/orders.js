@@ -106,3 +106,40 @@ export const updateOrderStatus = async (req, res) => {
     });
   }
 };
+
+// Create new order
+export const createOrder = async (req, res) => {
+  try {
+    const { orderData, orderItems } = req.body;
+
+    // Validation
+    if (!orderData || !orderItems || orderItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Data order tidak lengkap'
+      });
+    }
+
+    if (!orderData.employeeId || !orderData.orderTotal || !orderData.balance) {
+      return res.status(400).json({
+        success: false,
+        message: 'Data order tidak valid'
+      });
+    }
+
+    // Create order
+    const orderNumber = await orderModel.createOrder(orderData, orderItems);
+    
+    res.json({
+      success: true,
+      message: 'Order berhasil dibuat',
+      data: { orderNumber }
+    });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal membuat order'
+    });
+  }
+};

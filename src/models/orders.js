@@ -157,3 +157,83 @@ export const updateOrderStatus = async (orderNumber, status) => {
     throw error;
   }
 };
+
+// Create new order with order details
+export const createOrder = async (orderData, orderItems) => {
+  const pool = await poolPromise;
+  const transaction = new sql.Transaction(pool);
+  
+  try {
+    await transaction.begin();
+    
+    // Generate order number (format: ORD-YYYYMMDD-XXXXX)
+    const date = new Date();
+    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+    const randomStr = Math.floor(10000 + Math.random() * 90000);
+    const orderNumber = `ORD-${dateStr}-${randomStr}`;
+    
+    // Insert order
+    const orderRequest = new sql.Request(transaction);
+    await orderRequest
+      .input('orderNumber', sql.VarChar(50), orderNumber)
+      .input('orderDate', sql.DateTime, new Date())
+      .input('employeeId', sql.Int, orderData.employeeId)
+      .input('orderTotal', sql.Decimal(18, 2), orderData.orderTotal)
+      .input('balance', sql.Decimal(18, 2), orderData.balance)
+      .input('discountCode', sql.VarChar(50), orderData.discountCode || null)
+      .input('status', sql.VarChar(10), 'complete')
+      .query(`
+        INSERT INTO orders (order_number, order_date, employee_id, order_total, balance, discount_code, status)
+        VALUES (@orderNumber, @orderDate, @employeeId, @orderTotal, @balance, @discountCode, @status)
+      `);
+    
+    // Insert order details
+    for (const item of orderItems) {
+      const detailRequest = new sql.Request(transaction);
+      await detailRequest
+        .input('orderNumber', sql.VarChar(50), orderNumber)
+        .input('productId', sql.Int, item.productId)
+        .input('productName', sql.VarChar(255), item.productName)
+        .input('productPicture', sql.VarChar(255), item.productPicture)
+        .input('qtyProduct', sql.Int, item.qty)
+        .input('priceProduct', sql.Decimal(18, 2), item.price)
+        .input('status', sql.VarChar(50), 'berhasil')
+        .input('verifiedBy', sql.Int, orderData.employeeId)
+        .input('verifiedDate', sql.DateTime, new Date())
+        .input('balance', sql.Decimal(18, 2), item.qty * item.price)
+        .query(`
+          INSERT INTO order_details (order_number, product_id, product_name, product_picture, qty_product, price_product, status, verified_by, verified_date, balance)
+          VALUES (@orderNumber, @productId, @productName, @productPicture, @qtyProduct, @priceProduct, @status, @verifiedBy, @verifiedDate, @balance)
+        `);
+      
+      // Update product stock
+      const stockRequest = new sql.Request(transaction);
+      await stockRequest
+        .input('productId', sql.Int, item.productId)
+        .input('qty', sql.Int, item.qty)
+        .query(`
+          UPDATE products
+          SET qty = qty - @qty
+          WHERE id = @productId
+        `);
+    }
+    
+    // Update discount usage if discount code is used
+    if (orderData.discountCode) {
+      const discountRequest = new sql.Request(transaction);
+      await discountRequest
+        .input('discountCode', sql.VarChar(50), orderData.discountCode)
+        .query(`
+          UPDATE discount
+          SET total_usage = total_usage + 1
+          WHERE discount_code = @discountCode
+        `);
+    }
+    
+    await transaction.commit();
+    return orderNumber;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};

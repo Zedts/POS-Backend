@@ -166,6 +166,22 @@ VALUES (
     GETDATE()
 );
 
+-- Menambahkan employee baru dengan password "123456" yang di-hash MD5
+INSERT INTO student (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
+VALUES (
+    '0000012345', 
+    'employee', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Budi Santoso', 
+    '081234567890',
+    'Jl. Cempaka Putih No. 10, Jakarta',
+    'XII',
+    'RPL',
+    1,
+    GETDATE(), 
+    GETDATE()
+);
+
 -- Data Dummy Students/Employees --
 -- Menambahkan student/employee untuk testing dengan password "123456" yang di-hash MD5
 INSERT INTO student (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
