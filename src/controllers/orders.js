@@ -1,4 +1,5 @@
 import * as orderModel from '../models/orders.js';
+import { createAuditLog } from '../utils/auditLogger.js';
 
 // Get all orders with optional filters
 export const getOrders = async (req, res) => {
@@ -129,6 +130,25 @@ export const createOrder = async (req, res) => {
 
     // Create order
     const orderNumber = await orderModel.createOrder(orderData, orderItems);
+    
+    // Create audit log for employee order creation
+    await createAuditLog({
+      userId: orderData.employeeId,
+      userType: 'student',
+      userName: req.user?.username || req.user?.full_name || 'Employee',
+      entityType: 'order',
+      entityId: orderNumber,
+      action: 'CREATE',
+      description: `Membuat order baru: ${orderNumber} dengan ${orderItems.length} item`,
+      newValue: {
+        orderNumber,
+        orderTotal: orderData.orderTotal,
+        balance: orderData.balance,
+        itemCount: orderItems.length,
+        discountCode: orderData.discountCode || null
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
     
     res.json({
       success: true,

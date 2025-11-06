@@ -1,4 +1,5 @@
 import * as invoiceModel from '../models/invoices.js';
+import { createAuditLog } from '../utils/auditLogger.js';
 
 // Get all invoices with optional filters
 export const getInvoices = async (req, res) => {
@@ -68,6 +69,27 @@ export const createInvoice = async (req, res) => {
 
     // Create invoice
     const invoiceNumber = await invoiceModel.createInvoice(invoiceData);
+    
+    // Create audit log for employee invoice creation
+    await createAuditLog({
+      userId: invoiceData.verifiedBy,
+      userType: 'student',
+      userName: req.user?.username || req.user?.full_name || 'Employee',
+      entityType: 'invoice',
+      entityId: invoiceNumber,
+      action: 'CREATE',
+      description: `Membuat invoice: ${invoiceNumber} untuk order ${invoiceData.orderNumber}`,
+      newValue: {
+        invoiceNumber,
+        orderNumber: invoiceData.orderNumber,
+        orderTotal: invoiceData.orderTotal,
+        balance: invoiceData.balance,
+        paidBy: invoiceData.paidBy,
+        discountCode: invoiceData.discountCode || null,
+        discountPercent: invoiceData.discountPercent || 0
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
     
     res.json({
       success: true,

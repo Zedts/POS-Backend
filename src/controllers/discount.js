@@ -1,4 +1,5 @@
 import * as discountModel from '../models/discount.js';
+import { createAuditLog } from '../utils/auditLogger.js';
 
 // Get all discounts
 export const getDiscounts = async (req, res) => {
@@ -91,6 +92,26 @@ export const createDiscount = async (req, res) => {
     }
 
     const result = await discountModel.createDiscount(req.body, adminId);
+    
+    // Create audit log
+    await createAuditLog({
+      userId: adminId,
+      userType: 'admin',
+      userName: req.user.username || 'Admin',
+      entityType: 'discount',
+      entityId: result.discount_id,
+      action: 'CREATE',
+      description: `Membuat diskon baru: ${discount_code}`,
+      newValue: {
+        discount_code,
+        discount_percent,
+        discount_type,
+        start_date,
+        end_date
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+    
     res.status(201).json({
       success: true,
       message: 'Diskon berhasil ditambahkan',
@@ -165,6 +186,33 @@ export const updateDiscount = async (req, res) => {
     }
 
     await discountModel.updateDiscount(id, req.body, adminId);
+    
+    // Create audit log
+    await createAuditLog({
+      userId: adminId,
+      userType: 'admin',
+      userName: req.user.username || 'Admin',
+      entityType: 'discount',
+      entityId: id,
+      action: 'UPDATE',
+      description: `Mengupdate diskon: ${discount_code}`,
+      oldValue: {
+        discount_code: existingDiscount.discount_code,
+        discount_percent: existingDiscount.discount_percent,
+        discount_type: existingDiscount.discount_type,
+        start_date: existingDiscount.start_date,
+        end_date: existingDiscount.end_date
+      },
+      newValue: {
+        discount_code,
+        discount_percent,
+        discount_type,
+        start_date,
+        end_date
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+    
     res.json({
       success: true,
       message: 'Diskon berhasil diperbarui'
@@ -193,6 +241,24 @@ export const deleteDiscount = async (req, res) => {
     }
 
     await discountModel.deleteDiscount(id);
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: 'admin',
+      userName: req.user.username || 'Admin',
+      entityType: 'discount',
+      entityId: id,
+      action: 'DELETE',
+      description: `Menghapus diskon: ${existingDiscount.discount_code}`,
+      oldValue: {
+        discount_code: existingDiscount.discount_code,
+        discount_percent: existingDiscount.discount_percent,
+        discount_type: existingDiscount.discount_type
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+    
     res.json({
       success: true,
       message: 'Diskon berhasil dihapus'

@@ -1,4 +1,5 @@
 import * as StudentsModel from '../models/students.js';
+import { createAuditLog } from '../utils/auditLogger.js';
 
 // Get all students with filters
 export const getStudents = async (req, res) => {
@@ -64,7 +65,40 @@ export const updateStudent = async (req, res) => {
     const { id } = req.params;
     const studentData = req.body;
 
+    // Get existing data for audit log
+    const existingStudent = await StudentsModel.getStudentById(id);
+    if (!existingStudent) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
     await StudentsModel.updateStudent(id, studentData);
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: 'admin',
+      userName: req.user.username || 'Admin',
+      entityType: 'student',
+      entityId: id,
+      action: 'UPDATE',
+      description: `Mengupdate data student: ${studentData.full_name || existingStudent.full_name}`,
+      oldValue: {
+        full_name: existingStudent.full_name,
+        phone: existingStudent.phone,
+        address: existingStudent.address,
+        class: existingStudent.class,
+        major: existingStudent.major
+      },
+      newValue: {
+        full_name: studentData.full_name,
+        phone: studentData.phone,
+        address: studentData.address,
+        class: studentData.class,
+        major: studentData.major
+      },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+    
     res.json({ message: 'Student updated successfully' });
   } catch (error) {
     console.error('Error in updateStudent:', error);
@@ -76,7 +110,31 @@ export const updateStudent = async (req, res) => {
 export const toggleStudentStatus = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Get existing data for audit log
+    const existingStudent = await StudentsModel.getStudentById(id);
+    if (!existingStudent) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
     await StudentsModel.toggleStudentStatus(id);
+    
+    const newStatus = existingStudent.is_active === 1 ? 0 : 1;
+    
+    // Create audit log
+    await createAuditLog({
+      userId: req.user.id,
+      userType: 'admin',
+      userName: req.user.username || 'Admin',
+      entityType: 'student',
+      entityId: id,
+      action: 'UPDATE',
+      description: `Mengubah status student ${existingStudent.full_name}: ${existingStudent.is_active === 1 ? 'Aktif' : 'Nonaktif'} → ${newStatus === 1 ? 'Aktif' : 'Nonaktif'}`,
+      oldValue: { is_active: existingStudent.is_active },
+      newValue: { is_active: newStatus },
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+    
     res.json({ message: 'Student status toggled successfully' });
   } catch (error) {
     console.error('Error in toggleStudentStatus:', error);

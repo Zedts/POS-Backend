@@ -67,8 +67,8 @@ export const createProduct = async (req, res) => {
     // Create audit log
     await createAuditLog({
       userId: req.user.id,
-      userType: req.user.userType,
-      userName: req.user.fullName,
+      userType: req.user.role === 'admin' ? 'admin' : 'student',
+      userName: 'Admin',
       entityType: 'product',
       entityId: newProduct.id,
       action: 'CREATE',
@@ -127,8 +127,8 @@ export const updateProduct = async (req, res) => {
     
     await createAuditLog({
       userId: req.user.id,
-      userType: req.user.userType,
-      userName: req.user.fullName,
+      userType: req.user.role === 'admin' ? 'admin' : 'student',
+      userName: 'Admin',
       entityType: 'product',
       entityId: id,
       action: 'UPDATE',
@@ -187,8 +187,8 @@ export const deleteProduct = async (req, res) => {
     // Create audit log
     await createAuditLog({
       userId: req.user.id,
-      userType: req.user.userType,
-      userName: req.user.fullName,
+      userType: req.user.role === 'admin' ? 'admin' : 'student',
+      userName: 'Admin',
       entityType: 'product',
       entityId: id,
       action: 'DELETE',
