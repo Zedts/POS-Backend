@@ -15,8 +15,8 @@ export const getAllProducts = async (categoryId = null) => {
         c.category_name,
         p.qty,
         p.supplier,
-        p.price,
-        p.picture_url,
+        p.price as unit_price,
+        p.picture_url as image_url,
         p.status,
         p.exp_date,
         p.created_date,
@@ -59,8 +59,20 @@ export const getProductById = async (productId) => {
       .input('productId', productId)
       .query(`
         SELECT 
-          p.*,
+          p.id,
+          p.product_name,
+          p.category_id,
           c.category_name,
+          p.qty,
+          p.supplier,
+          p.price as unit_price,
+          p.picture_url as image_url,
+          p.status,
+          p.exp_date,
+          p.created_date,
+          p.updated_date,
+          p.created_by,
+          p.updated_by,
           a.full_name as created_by_name,
           a2.full_name as updated_by_name
         FROM products p
@@ -212,8 +224,18 @@ export const getLowStockProducts = async (threshold = 10) => {
       .input('threshold', threshold)
       .query(`
         SELECT 
-          p.*,
-          c.category_name
+          p.id,
+          p.product_name,
+          p.category_id,
+          c.category_name,
+          p.qty,
+          p.supplier,
+          p.price as unit_price,
+          p.picture_url as image_url,
+          p.status,
+          p.exp_date,
+          p.created_date,
+          p.updated_date
         FROM products p
         LEFT JOIN category c ON p.category_id = c.id
         WHERE p.qty <= @threshold
@@ -239,8 +261,18 @@ export const getExpiredProducts = async () => {
     const result = await pool.request()
       .query(`
         SELECT 
-          p.*,
-          c.category_name
+          p.id,
+          p.product_name,
+          p.category_id,
+          c.category_name,
+          p.qty,
+          p.supplier,
+          p.price as unit_price,
+          p.picture_url as image_url,
+          p.status,
+          p.exp_date,
+          p.created_date,
+          p.updated_date
         FROM products p
         LEFT JOIN category c ON p.category_id = c.id
         WHERE p.exp_date <= GETDATE() OR p.status = 'kadaluarsa'

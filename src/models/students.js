@@ -205,8 +205,6 @@ export const updateStudent = async (id, studentData) => {
         full_name = @fullName,
         phone = @phone,
         address = @address,
-        class = @class,
-        major = @major,
         updated_date = GETDATE()
       WHERE id = @id
     `;
@@ -216,8 +214,6 @@ export const updateStudent = async (id, studentData) => {
       .input('fullName', sql.VarChar, studentData.full_name)
       .input('phone', sql.VarChar, studentData.phone)
       .input('address', sql.Text, studentData.address)
-      .input('class', sql.VarChar, studentData.class)
-      .input('major', sql.VarChar, studentData.major)
       .query(query);
 
     return { success: true };
@@ -246,6 +242,47 @@ export const toggleStudentStatus = async (id) => {
     return { success: true };
   } catch (error) {
     console.error('Error in toggleStudentStatus:', error);
+    throw error;
+  }
+};
+
+// Update student password with old password verification
+export const updateStudentPassword = async (id, oldPassword, newPassword) => {
+  try {
+    const pool = await poolPromise;
+    
+    // Verify old password (MD5 hash)
+    const verifyQuery = `
+      SELECT id FROM student
+      WHERE id = @id AND password_hash = @oldPasswordHash
+    `;
+    
+    const verifyResult = await pool.request()
+      .input('id', sql.Int, id)
+      .input('oldPasswordHash', sql.VarChar, oldPassword)
+      .query(verifyQuery);
+    
+    if (verifyResult.recordset.length === 0) {
+      return { success: false, message: 'Password lama tidak sesuai' };
+    }
+    
+    // Update password
+    const updateQuery = `
+      UPDATE student
+      SET 
+        password_hash = @newPasswordHash,
+        updated_date = GETDATE()
+      WHERE id = @id
+    `;
+    
+    await pool.request()
+      .input('id', sql.Int, id)
+      .input('newPasswordHash', sql.VarChar, newPassword)
+      .query(updateQuery);
+    
+    return { success: true, message: 'Password berhasil diubah' };
+  } catch (error) {
+    console.error('Error in updateStudentPassword:', error);
     throw error;
   }
 };

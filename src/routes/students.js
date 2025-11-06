@@ -13,6 +13,7 @@ router.get('/stats', StudentsController.getStudentStats);
 router.get('/:id', StudentsController.getStudentById);
 router.get('/:id/transactions', StudentsController.getStudentTransactions);
 router.put('/:id', StudentsController.updateStudent);
+router.put('/:id/password', StudentsController.updateStudentPassword);
 router.patch('/:id/toggle-status', StudentsController.toggleStudentStatus);
 
 export default router;

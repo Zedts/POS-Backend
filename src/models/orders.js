@@ -197,7 +197,7 @@ export const createOrder = async (orderData, orderItems) => {
         .input('productPicture', sql.VarChar(255), item.productPicture)
         .input('qtyProduct', sql.Int, item.qty)
         .input('priceProduct', sql.Decimal(18, 2), item.price)
-        .input('status', sql.VarChar(50), 'berhasil')
+        .input('status', sql.VarChar(50), 'complete')
         .input('verifiedBy', sql.Int, orderData.employeeId)
         .input('verifiedDate', sql.DateTime, new Date())
         .input('balance', sql.Decimal(18, 2), item.qty * item.price)

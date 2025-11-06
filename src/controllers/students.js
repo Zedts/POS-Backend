@@ -83,3 +83,26 @@ export const toggleStudentStatus = async (req, res) => {
     res.status(500).json({ error: 'Failed to toggle student status' });
   }
 };
+
+// Update student password
+export const updateStudentPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+    
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: 'Old password and new password are required' });
+    }
+    
+    const result = await StudentsModel.updateStudentPassword(id, oldPassword, newPassword);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.message });
+    }
+    
+    res.json({ message: result.message });
+  } catch (error) {
+    console.error('Error in updateStudentPassword:', error);
+    res.status(500).json({ error: 'Failed to update password' });
+  }
+};
