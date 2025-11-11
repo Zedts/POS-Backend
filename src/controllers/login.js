@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { loginAdmin, loginStudent, registerStudent } from "../models/login.js";
+import { loginAdmin, loginStudent, loginCustomer, registerStudent, registerCustomer } from "../models/login.js";
 
 // MD5 Hash Function
 const hashPassword = (password) => {
@@ -72,6 +72,31 @@ export const login = async (req, res) => {
           isActive: student.is_active,
           createdDate: student.created_date,
           updatedDate: student.updated_date,
+        },
+      });
+    }
+
+    // Check Customer
+    const customer = await loginCustomer(username, passwordHash);
+    if (customer) {
+      const token = generateToken(customer.id, "customer");
+      return res.status(200).json({
+        success: true,
+        message: "Login berhasil",
+        role: "customer",
+        token: token,
+        data: {
+          id: customer.id,
+          nisn: customer.nisn,
+          username: customer.username,
+          fullName: customer.full_name,
+          phone: customer.phone,
+          address: customer.address,
+          class: customer.class,
+          major: customer.major,
+          isActive: customer.is_active,
+          createdDate: customer.created_date,
+          updatedDate: customer.updated_date,
         },
       });
     }

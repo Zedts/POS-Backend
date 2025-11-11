@@ -24,6 +24,22 @@ CREATE TABLE student (
     updated_date DATETIME DEFAULT GETDATE()
 );
 
+-- Tabel customer: customer/pembeli yang dapat melihat histori transaksi
+CREATE TABLE customer (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nisn VARCHAR(20) UNIQUE NOT NULL, -- Nomor Induk Siswa Nasional
+    username VARCHAR(50) NOT NULL UNIQUE, -- Username login customer
+    password_hash VARCHAR(255) NOT NULL, -- Password yang di-hash
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15),
+    address TEXT,
+    class VARCHAR(3) NOT NULL CHECK (class IN ('X', 'XI', 'XII')),
+    major VARCHAR(10) NOT NULL CHECK (major IN ('RPL', 'DKV1', 'DKV2', 'BR', 'MP', 'AK')),
+    is_active BIT DEFAULT 1,
+    created_date DATETIME DEFAULT GETDATE(),
+    updated_date DATETIME DEFAULT GETDATE()
+);
+
 -- Tabel category: kategori produk
 CREATE TABLE category (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -89,11 +105,13 @@ CREATE TABLE orders (
     order_number VARCHAR(50) PRIMARY KEY,
     order_date DATETIME DEFAULT GETDATE(),
     employee_id INT NOT NULL, -- FK ke siswa yang input order
+    customer_id INT NULL, -- FK ke customer yang melakukan pembelian
     order_total DECIMAL(18,0),
     balance DECIMAL(18,0),
     discount_code VARCHAR(50) NULL,
     status VARCHAR(10) CHECK (status IN ('pending', 'complete', 'refunded')) DEFAULT 'pending',
     FOREIGN KEY (employee_id) REFERENCES student(id),
+    FOREIGN KEY (customer_id) REFERENCES customer(id),
     FOREIGN KEY (discount_code) REFERENCES discount(discount_code)
 );
 
@@ -138,7 +156,7 @@ CREATE TABLE invoices (
 CREATE TABLE audit_logs (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL, -- ID user yang melakukan aksi
-    user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('admin', 'student')), -- Tipe user
+    user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('admin', 'student', 'customer')), -- Tipe user
     user_name VARCHAR(100) NOT NULL, -- Nama user untuk display
     entity_type VARCHAR(50) NOT NULL, -- Tipe entitas: product, category, discount, student, order, invoice
     entity_id VARCHAR(100), -- ID entitas yang diubah
@@ -227,6 +245,39 @@ VALUES (
     'X',
     'BR',
     0,
+    GETDATE(), 
+    GETDATE()
+);
+
+-- Data Dummy Customers --
+-- Menambahkan customer pertama untuk testing dengan password "123456" yang di-hash MD5
+INSERT INTO customer (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
+VALUES (
+    '0012345681', 
+    'customer1', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Andi Wijaya', 
+    '081234567893',
+    'Jl. Kebon Jeruk No. 45, Jakarta Barat',
+    'XII',
+    'RPL',
+    1,
+    GETDATE(), 
+    GETDATE()
+);
+
+-- Menambahkan customer kedua untuk testing dengan password "123456" yang di-hash MD5
+INSERT INTO customer (nisn, username, password_hash, full_name, phone, address, class, major, is_active, created_date, updated_date)
+VALUES (
+    '0012345682', 
+    'customer2', 
+    CONVERT(VARCHAR(32), HASHBYTES('MD5', '123456'), 2), 
+    'Dewi Sartika', 
+    '081234567894',
+    'Jl. Pahlawan No. 88, Jakarta Timur',
+    'XI',
+    'DKV2',
+    1,
     GETDATE(), 
     GETDATE()
 );

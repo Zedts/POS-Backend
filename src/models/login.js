@@ -41,6 +41,26 @@ export const loginStudent = async (username, passwordHash) => {
   }
 };
 
+// Login - Check Customer
+export const loginCustomer = async (username, passwordHash) => {
+  try {
+    const query = `
+      SELECT id, nisn, username, full_name, phone, address, class, major, is_active, created_date, updated_date
+      FROM customer
+      WHERE username = :username AND password_hash = :passwordHash AND is_active = 1
+    `;
+    
+    const result = await connectDBPOSSequelize.query(query, {
+      replacements: { username, passwordHash },
+      type: QueryTypes.SELECT,
+    });
+
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Register - Student Only
 export const registerStudent = async (studentData) => {
   try {
@@ -79,6 +99,62 @@ export const registerStudent = async (studentData) => {
     // Insert new student
     const insertQuery = `
       INSERT INTO student (nisn, username, password_hash, full_name, phone, address, class, major)
+      VALUES (:nisn, :username, :passwordHash, :fullName, :phone, :address, :studentClass, :major)
+    `;
+    
+    await connectDBPOSSequelize.query(insertQuery, {
+      replacements: { nisn, username, passwordHash, fullName, phone, address, studentClass, major },
+      type: QueryTypes.INSERT,
+    });
+
+    return { success: true, message: "Registrasi berhasil" };
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Register - Customer
+export const registerCustomer = async (customerData) => {
+  try {
+    const { nisn, username, passwordHash, fullName, phone, address, studentClass, major } = customerData;
+    
+    // Check if username already exists in customer, student, and admin
+    const checkUsername = `
+      SELECT username FROM customer WHERE username = :username
+      UNION
+      SELECT username FROM student WHERE username = :username
+      UNION
+      SELECT username FROM admin WHERE username = :username
+    `;
+    
+    const existingUser = await connectDBPOSSequelize.query(checkUsername, {
+      replacements: { username },
+      type: QueryTypes.SELECT,
+    });
+
+    if (existingUser.length > 0) {
+      return { success: false, message: "Username sudah digunakan" };
+    }
+
+    // Check if NISN already exists in customer and student
+    const checkNISN = `
+      SELECT nisn FROM customer WHERE nisn = :nisn
+      UNION
+      SELECT nisn FROM student WHERE nisn = :nisn
+    `;
+    
+    const existingNISN = await connectDBPOSSequelize.query(checkNISN, {
+      replacements: { nisn },
+      type: QueryTypes.SELECT,
+    });
+
+    if (existingNISN.length > 0) {
+      return { success: false, message: "NISN sudah terdaftar" };
+    }
+
+    // Insert new customer
+    const insertQuery = `
+      INSERT INTO customer (nisn, username, password_hash, full_name, phone, address, class, major)
       VALUES (:nisn, :username, :passwordHash, :fullName, :phone, :address, :studentClass, :major)
     `;
     
