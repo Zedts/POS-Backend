@@ -349,10 +349,20 @@ export const validateDiscountCode = async (req, res) => {
     res.json({
       success: true,
       data: {
+        valid: true,
         discount_id: validation.discount_id,
         discount_code: validation.discount_code,
         discount_amount: discountAmount,
-        final_amount: amount - discountAmount
+        final_amount: amount - discountAmount,
+        discount: {
+          discount_id: validation.discount_id,
+          discount_code: validation.discount_code,
+          discount_percent: validation.discount_percent,
+          discount_type: validation.discount_type,
+          min_purchase: validation.min_purchase,
+          max_discount: validation.max_discount,
+          description: validation.description || ''
+        }
       }
     });
   } catch (error) {

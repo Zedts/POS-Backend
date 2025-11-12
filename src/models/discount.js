@@ -241,6 +241,7 @@ export const validateDiscount = async (discountCode, purchaseAmount) => {
         SELECT 
           d.discount_id,
           d.discount_code,
+          d.description,
           d.discount_percent,
           d.discount_type,
           d.min_purchase,
