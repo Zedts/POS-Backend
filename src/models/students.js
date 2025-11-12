@@ -202,6 +202,7 @@ export const updateStudent = async (id, studentData) => {
     const query = `
       UPDATE student
       SET 
+        username = @username,
         full_name = @fullName,
         phone = @phone,
         address = @address,
@@ -211,6 +212,7 @@ export const updateStudent = async (id, studentData) => {
 
     await pool.request()
       .input('id', sql.Int, id)
+      .input('username', sql.VarChar, studentData.username)
       .input('fullName', sql.VarChar, studentData.full_name)
       .input('phone', sql.VarChar, studentData.phone)
       .input('address', sql.Text, studentData.address)

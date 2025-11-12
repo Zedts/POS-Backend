@@ -128,6 +128,14 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    // Validasi customer_id WAJIB DIISI
+    if (!orderData.customerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mohon pilih customer terlebih dahulu'
+      });
+    }
+
     // Create order
     const orderNumber = await orderModel.createOrder(orderData, orderItems);
     
@@ -139,13 +147,14 @@ export const createOrder = async (req, res) => {
       entityType: 'order',
       entityId: orderNumber,
       action: 'CREATE',
-      description: `Membuat order baru: ${orderNumber} dengan ${orderItems.length} item`,
+      description: `Membuat order baru: ${orderNumber} dengan ${orderItems.length} item untuk customer ID: ${orderData.customerId}`,
       newValue: {
         orderNumber,
         orderTotal: orderData.orderTotal,
         balance: orderData.balance,
         itemCount: orderItems.length,
-        discountCode: orderData.discountCode || null
+        discountCode: orderData.discountCode || null,
+        customerId: orderData.customerId
       },
       ipAddress: req.ip || req.connection.remoteAddress
     });

@@ -10,14 +10,19 @@ export const getAllOrders = async (filters = {}) => {
         o.order_number,
         o.order_date,
         o.employee_id,
+        o.customer_id,
         o.order_total,
         o.balance,
         o.discount_code,
         o.status,
         s.full_name as employee_name,
-        s.nisn as employee_nisn
+        s.nisn as employee_nisn,
+        c.full_name as customer_name,
+        c.class as customer_class,
+        c.major as customer_major
       FROM orders o
       LEFT JOIN student s ON o.employee_id = s.id
+      LEFT JOIN customer c ON o.customer_id = c.id
       WHERE 1=1
     `;
 
@@ -65,6 +70,7 @@ export const getOrderByNumber = async (orderNumber) => {
           o.order_number,
           o.order_date,
           o.employee_id,
+          o.customer_id,
           o.order_total,
           o.balance,
           o.discount_code,
@@ -73,11 +79,15 @@ export const getOrderByNumber = async (orderNumber) => {
           s.nisn as employee_nisn,
           s.class as employee_class,
           s.major as employee_major,
+          c.full_name as customer_name,
+          c.class as customer_class,
+          c.major as customer_major,
           d.description as discount_description,
           d.discount_percent,
           d.discount_type
         FROM orders o
         LEFT JOIN student s ON o.employee_id = s.id
+        LEFT JOIN customer c ON o.customer_id = c.id
         LEFT JOIN discount d ON o.discount_code = d.discount_code
         WHERE o.order_number = @orderNumber
       `);
@@ -178,13 +188,14 @@ export const createOrder = async (orderData, orderItems) => {
       .input('orderNumber', sql.VarChar(50), orderNumber)
       .input('orderDate', sql.DateTime, new Date())
       .input('employeeId', sql.Int, orderData.employeeId)
+      .input('customerId', sql.Int, orderData.customerId || null)
       .input('orderTotal', sql.Decimal(18, 2), orderData.orderTotal)
       .input('balance', sql.Decimal(18, 2), orderData.balance)
       .input('discountCode', sql.VarChar(50), orderData.discountCode || null)
       .input('status', sql.VarChar(10), 'complete')
       .query(`
-        INSERT INTO orders (order_number, order_date, employee_id, order_total, balance, discount_code, status)
-        VALUES (@orderNumber, @orderDate, @employeeId, @orderTotal, @balance, @discountCode, @status)
+        INSERT INTO orders (order_number, order_date, employee_id, customer_id, order_total, balance, discount_code, status)
+        VALUES (@orderNumber, @orderDate, @employeeId, @customerId, @orderTotal, @balance, @discountCode, @status)
       `);
     
     // Insert order details

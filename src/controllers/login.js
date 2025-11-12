@@ -8,9 +8,9 @@ const hashPassword = (password) => {
 };
 
 // Generate JWT Token (8 hours)
-const generateToken = (userId, role) => {
+const generateToken = (userId, role, fullName, userType) => {
   return jwt.sign(
-    { id: userId, role: role },
+    { id: userId, role: role, fullName: fullName, userType: userType },
     process.env.JWT_SECRET,
     { expiresIn: "8h" }
   );
@@ -35,7 +35,7 @@ export const login = async (req, res) => {
     // Check Admin first
     const admin = await loginAdmin(username, passwordHash);
     if (admin) {
-      const token = generateToken(admin.id, "admin");
+      const token = generateToken(admin.id, "admin", admin.full_name, "admin");
       return res.status(200).json({
         success: true,
         message: "Login berhasil",
@@ -44,7 +44,7 @@ export const login = async (req, res) => {
         data: {
           id: admin.id,
           username: admin.username,
-          fullName: admin.full_name,
+          full_name: admin.full_name,
           createdDate: admin.created_date,
           updatedDate: admin.updated_date,
         },
@@ -54,7 +54,7 @@ export const login = async (req, res) => {
     // Check Student
     const student = await loginStudent(username, passwordHash);
     if (student) {
-      const token = generateToken(student.id, "employee");
+      const token = generateToken(student.id, "employee", student.full_name, "student");
       return res.status(200).json({
         success: true,
         message: "Login berhasil",
@@ -64,7 +64,7 @@ export const login = async (req, res) => {
           id: student.id,
           nisn: student.nisn,
           username: student.username,
-          fullName: student.full_name,
+          full_name: student.full_name,
           phone: student.phone,
           address: student.address,
           class: student.class,
@@ -79,7 +79,7 @@ export const login = async (req, res) => {
     // Check Customer
     const customer = await loginCustomer(username, passwordHash);
     if (customer) {
-      const token = generateToken(customer.id, "customer");
+      const token = generateToken(customer.id, "customer", customer.full_name, "customer");
       return res.status(200).json({
         success: true,
         message: "Login berhasil",
@@ -89,7 +89,7 @@ export const login = async (req, res) => {
           id: customer.id,
           nisn: customer.nisn,
           username: customer.username,
-          fullName: customer.full_name,
+          full_name: customer.full_name,
           phone: customer.phone,
           address: customer.address,
           class: customer.class,

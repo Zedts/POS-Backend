@@ -83,6 +83,7 @@ export const updateStudent = async (req, res) => {
       action: 'UPDATE',
       description: `Mengupdate data student: ${studentData.full_name || existingStudent.full_name}`,
       oldValue: {
+        username: existingStudent.username,
         full_name: existingStudent.full_name,
         phone: existingStudent.phone,
         address: existingStudent.address,
@@ -90,6 +91,7 @@ export const updateStudent = async (req, res) => {
         major: existingStudent.major
       },
       newValue: {
+        username: studentData.username,
         full_name: studentData.full_name,
         phone: studentData.phone,
         address: studentData.address,
