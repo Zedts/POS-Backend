@@ -323,27 +323,70 @@ export const getCustomerOrderDetails = async (req, res) => {
   try {
     const { id, orderNumber } = req.params;
 
-    const query = `
+    // Get order info with employee details
+    const orderQuery = `
       SELECT 
-        od.*,
+        o.order_number,
+        o.order_date,
+        o.order_total,
+        o.balance,
+        o.status,
+        o.discount_code,
+        s.full_name as employee_name,
+        s.nisn as employee_nisn,
+        s.class as employee_class,
+        s.major as employee_major,
+        i.invoice_number,
+        i.invoice_status,
+        i.paid_by,
+        d.discount_percent,
+        d.discount_type,
+        d.description as discount_description
+      FROM orders o
+      LEFT JOIN student s ON o.employee_id = s.id
+      LEFT JOIN invoices i ON o.order_number = i.order_number
+      LEFT JOIN discount d ON o.discount_code = d.discount_code
+      WHERE o.order_number = '${orderNumber}' 
+      AND o.customer_id = ${id}
+    `;
+
+    // Get order items
+    const itemsQuery = `
+      SELECT 
+        od.id,
+        od.product_id,
+        od.qty_product,
+        od.price_product,
+        od.status,
         p.product_name,
-        p.picture_url
+        p.picture_url as product_picture
       FROM order_details od
       LEFT JOIN products p ON od.product_id = p.id
       WHERE od.order_number = '${orderNumber}'
-      AND EXISTS (
-        SELECT 1 FROM orders o 
-        WHERE o.order_number = '${orderNumber}' 
-        AND o.customer_id = ${id}
-      )
       ORDER BY od.id
     `;
 
-    const result = await connectDBPOS(query);
+    const [orderResult, itemsResult] = await Promise.all([
+      connectDBPOS(orderQuery),
+      connectDBPOS(itemsQuery)
+    ]);
+
+    if (orderResult.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    const orderData = orderResult.recordset[0];
+    const items = itemsResult.recordset;
 
     res.status(200).json({
       success: true,
-      data: result.recordset,
+      data: {
+        ...orderData,
+        items
+      },
     });
   } catch (error) {
     console.error("Error fetching order details:", error);
